@@ -1,0 +1,123 @@
+{
+  "Dhcp4": {
+    "interfaces-config": {
+      "interfaces": ["{{ kea_interface }}"]
+    },
+    "control-socket": {
+      "socket-type": "{{ kea_socket_type }}",
+      "socket-name": "{{ kea_socket_name }}"
+    },
+    "lease-database": {
+      "type": "{{ kea_bdd_type }}",
+      "name": "{{ kea_bdd_name }}",
+      "user": "{{ kea_bdd_user }}",
+      "password": "{{ kea_bdd_passwd }}",
+      "host": "{{ kea_bdd_host }}",
+      "port": {{ kea_bdd_port }},
+      "max-reconnect-tries" : 50,
+      "reconnect-wait-time": 2000,
+      "connect-timeout": 5000,
+      "request-timeout": 12000,
+      "tcp-keepalive": 1,
+      "tcp-nodelay": true
+    },
+    "hosts-database": {
+      "type": "{{ kea_bdd_type }}",
+      "name": "{{ kea_bdd_name }}",
+      "user": "{{ kea_bdd_user }}",
+      "password": "{{ kea_bdd_passwd }}",
+      "host": "{{ kea_bdd_host }}",
+      "port": {{ kea_bdd_port }},
+      "max-reconnect-tries" : 50,
+      "reconnect-wait-time": 2000,
+      "connect-timeout": 5000,
+      "request-timeout": 12000,
+      "tcp-keepalive": 1,
+      "tcp-nodelay": true
+    },
+    "expired-leases-processing": {
+      "reclaim-timer-wait-time": 10,
+      "flush-reclaimed-timer-wait-time": 25,
+      "hold-reclaimed-time": 3600,
+      "max-reclaim-leases": 100,
+      "max-reclaim-time": 250,
+      "unwarned-reclaim-cycles": 5
+    },
+    "renew-timer": 21600,
+    "rebind-timer": 43200,
+    "valid-lifetime": 86400,
+    "option-def": [
+      {
+        "name": "tftp-server-address",
+        "code": 150,
+        "type": "ipv4-address",
+        "space": "dhcp4"
+      }
+    ],
+    "client-classes": [
+      {
+	    "name": "CPE_RAD_FIBRE_SDSL",
+	    "test": "((option[60].hex == '{{ kea_rad_name }}_6660060000') or (option[60].hex == '{{ kea_rad_name }}_6662420000')) and (substring(option[61].hex,0,4) == 0x010020d2)",
+        "option-data": [
+          {
+		    "name": "tftp-server-address",
+		    "data": "{{ kea_tftp_host }}"
+          },
+          {
+		    "name": "boot-file-name",
+		    "data": "rad/rad-fibre-sdsl.xml"
+          }
+	    ]
+      }
+    ],
+
+    "hooks-libraries": [
+      {
+	    "library": "{{ kea_install_dir }}/lib/hooks/libdhcp_flex_id.so",
+	    "parameters":
+          {
+	    	"identifier-expression": "relay4[1].hex",
+            "replace-client-id": true
+          }
+      },
+      {
+	    "library": "{{ kea_install_dir }}/lib/hooks/libdhcp_lease_cmds.so"
+      }
+    ],
+
+    "subnet4": [
+{% for item in kea_subnets %}
+      {
+	    # {{ item.comment | default("") }}
+	    "subnet": "{{ item.subnet }}",
+	    "pools": [ { "pool": "{{ item.pool_start }} - {{ item.pool_end }}" } ],
+	    "client-class": "{{ item.class }}",
+        "option-data": [
+          {
+		    "name": "{{ item.opt_name }}",
+		    "data": "{{ item.opt_data }}"
+          }
+	    ]
+      {{"}," if not loop.last else "}"   }}
+{% endfor %}
+    ]
+  },
+  "Logging":
+    {
+      "loggers": [
+        {
+          "name": "kea-dhcp4",
+          "output_options": [
+            {
+              "output": "{{ kea_log_file }}",
+              "maxsize": 1048576,
+              "maxver": 8
+            }
+          ],
+          // FATAL, ERROR, WARN, INFO, DEBUG
+          "severity": "{{ kea_log_level }}",
+          "debuglevel": 0
+        }
+      ]
+    }
+}

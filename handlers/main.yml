@@ -1,0 +1,5 @@
+---
+- name: "restart kea"
+  service:
+    name: kea
+    state: restarted

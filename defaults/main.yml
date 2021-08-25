@@ -1,0 +1,34 @@
+---
+#Install
+kea_version: "1.5.0"
+kea_tgz: "kea-{{ kea_version }}.tar.gz"
+kea_tgz_url: "https://ftp.isc.org/isc/kea/{{ kea_version }}/{{ kea_tgz }}"
+kea_build_dir: /tmp/kea
+kea_install_dir: /opt/kea
+kea_prenium_install: false
+kea_prenium_tgz: path_to_package/kea-premium-1.5.0.tar
+
+#Global
+kea_interface: 'ens3'
+kea_socket_type: 'unix'
+kea_socket_name: '/tmp/kea-dhcp4-ctrl.sock'
+kea_rad_name: test
+
+#postgresql
+kea_bdd_type: 'postgresql'
+kea_bdd_name: 'kea'
+kea_bdd_user: 'kea'
+kea_bdd_passwd: 'strongpass'
+kea_bdd_host: '10.10.10.10'
+kea_bdd_port: '5432'
+
+#Log
+kea_log_file: "/var/log/kea-dhcp4.log"
+kea_log_level: INFO
+kea_tftp_host: "10.10.10.11"
+
+kea_client_classes: []
+#  - { name: 'CPE_RAD_FIBRE_SDSL', opt_data: 'test' }
+
+kea_subnets: []
+#  - { comment: 'Zone 0 PE-A = 1002, PE-B = 1001', subnet: '10.32.0.0/18', pool_start: '10.32.0.10', pool_end: '10.32.63.254', class: 'CPE_RAD_FIBRE_SDSL', opt_name: 'routers', opt_data: '10.32.0.1' }
