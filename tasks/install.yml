@@ -44,7 +44,7 @@
     - name: "Download kea..."
       get_url:
         url: '{{ kea_tgz_url }}'
-        dest: '{{kea_build_dir}}/{{ kea_tgz }}'
+        dest: '{{ kea_build_dir }}/{{ kea_tgz }}'
         timeout: 120
         mode: 0644
 
