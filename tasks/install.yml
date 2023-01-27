@@ -1,14 +1,15 @@
 ---
 - name: "Check for kea binary"
-  stat:
+  ansible.builtin.stat:
     path: "/opt/kea/sbin/kea-dhcp4"
   changed_when: false
   register: kea_install
 
-- when: not kea_install.stat.exists
+- name: "Install tasks"
+  when: not kea_install.stat.exists
   block:
     - name: Install requierements packages to build kea
-      package:
+      ansible.builtin.package:
         name:
           - automake
           - libtool
@@ -28,7 +29,7 @@
         update_cache: true
 
     - name: "Ensure directories exists"
-      file:
+      ansible.builtin.file:
         path: '{{ item }}'
         state: directory
         mode: 0755
@@ -37,19 +38,19 @@
         - "{{ kea_install_dir }}"
 
     - name: "Install requierements"
-      package:
-        name: "ca-certificates"
+      ansible.builtin.package:
+        name: ["ca-certificates", "unzip", "tar"]
         state: present
 
     - name: "Download kea..."
-      get_url:
+      ansible.builtin.get_url:
         url: '{{ kea_tgz_url }}'
         dest: '{{ kea_build_dir }}/{{ kea_tgz }}'
         timeout: 120
         mode: 0644
 
     - name: "Unarchive kea..."
-      unarchive:
+      ansible.builtin.unarchive:
         src: '{{ kea_build_dir }}/{{ kea_tgz }}'
         dest: '{{ kea_build_dir }}'
         extra_opts: [--strip-components=1]
@@ -57,50 +58,52 @@
         mode: 0644
 
     - name: "Unarchive kea prenium..."
-      unarchive:
+      ansible.builtin.unarchive:
         src: '{{ kea_prenium_tgz }}'
         dest: '{{ kea_build_dir }}'
         mode: 0644
       when: kea_prenium_install|bool
 
     - name: "Run autoreconf"
-      command: /usr/bin/autoreconf --install
+      ansible.builtin.command: /usr/bin/autoreconf --install
       args:
         chdir: '{{ kea_build_dir }}'
+      changed_when: false
 
     - name: "Run configure"
-      command: ./configure --with-pgsql=/usr/bin/pg_config --prefix={{ kea_install_dir }}
+      ansible.builtin.command: ./configure --with-pgsql=/usr/bin/pg_config --prefix={{ kea_install_dir }}
       args:
         chdir: '{{ kea_build_dir }}'
+      changed_when: false
 
     - name: "Run make... (take a while)"
-      make:
+      ansible.builtin.make:
         chdir: '{{ kea_build_dir }}'
       environment:
         PKG_CONFIG_PATH: /usr/local/lib64/pkgconfig
         PATH: /usr/lib64/ccache::{{ ansible_env.PATH }}
 
     - name: "Run make install..."
-      make:
+      ansible.builtin.make:
         chdir: '{{ kea_build_dir }}'
         target: install
 
 - name: "Create config file"
-  template:
+  ansible.builtin.template:
     src: kea-dhcp4.conf.j2
     dest: "{{ kea_install_dir }}/etc/kea/kea-dhcp4.conf"
     mode: 0644
   notify: "restart kea"
 
 - name: "Create systemd for kea"
-  template:
+  ansible.builtin.template:
     src: kea.service.j2
     dest: /etc/systemd/system/kea.service
     mode: 0644
   notify: "restart kea"
 
-- name: Start kea.service
-  service:
+- name: "Start kea.service"
+  ansible.builtin.service:
     name: kea
     state: started
     enabled: true
