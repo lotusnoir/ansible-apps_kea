@@ -77,14 +77,14 @@
       changed_when: false
 
     - name: "Run make... (take a while)"
-      ansible.builtin.make:
+      community.general.make:
         chdir: '{{ kea_build_dir }}'
       environment:
         PKG_CONFIG_PATH: /usr/local/lib64/pkgconfig
         PATH: /usr/lib64/ccache::{{ ansible_env.PATH }}
 
     - name: "Run make install..."
-      ansible.builtin.make:
+      community.general.make:
         chdir: '{{ kea_build_dir }}'
         target: install
 
@@ -93,14 +93,14 @@
     src: kea-dhcp4.conf.j2
     dest: "{{ kea_install_dir }}/etc/kea/kea-dhcp4.conf"
     mode: 0644
-  notify: "restart kea"
+  notify: "Restart kea"
 
 - name: "Create systemd for kea"
   ansible.builtin.template:
     src: kea.service.j2
     dest: /etc/systemd/system/kea.service
     mode: 0644
-  notify: "restart kea"
+  notify: "Restart kea"
 
 - name: "Start kea.service"
   ansible.builtin.service:
