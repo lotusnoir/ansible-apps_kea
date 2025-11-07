@@ -22,6 +22,7 @@
 ## Description
 
 Install and configure server dhcp kea
+
 ## Requirements
 
 none
@@ -39,7 +40,6 @@ See [variables](/defaults/main.yml) for more details.
           gather_facts: true
           roles:
             - role: ansible-apps_kea
-
 
 ## License
 
